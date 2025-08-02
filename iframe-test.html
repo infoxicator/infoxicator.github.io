@@ -27,21 +27,23 @@
   </head>
   <body>
     <script>
-      // Try sending after load and periodically as a fallback
-      function sendHeight() {
-        const height = document.body.scrollHeight;
-        window.parent.postMessage({ type: 'mcp-ui-iframe-height', height }, '*');
-      }
+     const resizeObserver = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        window.parent.postMessage(
+          {
+            type: "ui-size-change",
+            payload: {
+              height: entry.contentRect.height,
+            },
+          },
+          "*",
+        );
+      });
+    });
 
-      window.onload = () => {
-        // Send once on load
-        sendHeight();
-
-        // Send again after a short delay in case content grows after first paint
-        setTimeout(sendHeight, 1000); // 1 second is usually enough
-        setTimeout(sendHeight, 2500); // optional: 2nd backup after 2.5s
-      };
-      const target = new URLSearchParams(location.search).get('url');
+    resizeObserver.observe(document.documentElement)
+    
+    const target = new URLSearchParams(location.search).get('url');
 
       // Validate that the URL is a valid HTTP or HTTPS URL
       function isValidHttpUrl(string) {
